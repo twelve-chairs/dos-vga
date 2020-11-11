@@ -35,7 +35,7 @@ main:
 nextline:
 	mov X, 0				;reset X
 	inc COLOR				;next color
-	inc Y               	;next y-coordinate / line
+	inc Y               	;next Y-coordinate / line
 	cmp Y, MAXY				;check Y screen overflow
 	jne plotpixel
 	jmp keypress        	;done drawing, listen for keystroke
