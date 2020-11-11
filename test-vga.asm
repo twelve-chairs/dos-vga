@@ -1,69 +1,83 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Date: Nov 7, 2020
 ; Author: Alex Simakov
 ;
-; A simple, and likely
-; highly-inefficient,
-; pixel plotter
-; which fills in the
-; screen with all available
-; colors as a rainbow
+; A simple, and likely highly-inefficient,
+; pixel plotter which fills in the screen
+; with all available colors as a rainbow
 ; venetian blind pattern.
 ;
-; Tested with TASM 4.1
-; in DosBox 0.74-3
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Tested with TASM 4.1 in DosBox 0.74-3
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 .model small
 .stack 100h
 .data
+	X 		dw 	?
+	Y 		dw 	?
+	COLOR	db  ?
+
 .code
 
-MAXX EQU 640
-MAXY EQU 400
+MAXX EQU 320
+MAXY EQU 200
 
 main:
-	mov ax,4F02h
-	mov bx,100h     ;www.wagemakers.be/english/doc/vga
-	int 10h         ;switch to SVGA
+	mov ax, 13h
+	int 10h           		;switch to VGA 320x200
 
-	mov cx, 0 		;initialize x
-	mov dx, 0 		;initialize y
-	mov al, 0 		;initiialize color
-	jmp plotpixel	;begin plotting
+	mov X, 0				;initialize X
+	mov Y, 0				;initialize Y
+	mov COLOR, 0			;initialize COLOR
 
-resetcolor:
-	mov al, 0
+	jmp plotpixel			;begin plotting
 
 nextline:
-	inc al			;next color
-	mov cx, 0		;reset X
-	inc dx          ;next line
-	cmp dx, MAXY	;check Y screen overflow
+	mov X, 0				;reset X
+	inc COLOR				;next color
+	inc Y               	;next y-coordinate / line
+	cmp Y, MAXY				;check Y screen overflow
 	jne plotpixel
-	jmp keypress    ;done drawing, listen for keystroke
+	jmp keypress        	;done drawing, listen for keystroke
 
 plotpixel:
-	mov ah, 0Ch
-	int 10h         ;plot to screen
+	mov ax, Y				;store Y in ax
+	mov bx, X 				;store X in bx
+	mov cx, MAXX        	;store 320 in cx
+							;calculate video memory offset as Y*320 + X
+	mul cx              	;multiply cx by ax and store in ax
+	add ax, bx     			;add ax to cx and store in ax
+	mov di, ax              ;move calculated offset to di
+	mov bx, 0A000h			;set video segment
+	mov es, bx 				;use X as start address
+	mov dl, COLOR
+	mov es:[di], dl         ;write offset/color
 
-	inc cx          ;move down X axis
-	cmp cx, MAXX    ;check X screen overflow
-	jne plotpixel   ;continue down the X axis
-	jmp nextline    ;end of line? make a new line
+	inc X               	;move down X axis
+	cmp X, MAXX         	;check X screen overflow
+	jne plotpixel       	;continue down the X axis
+	jmp nextline            ;end of line? start a new line
 
 keypress:
 	mov ah, 0Bh
-	int 21h         ;read key buffer
-	cmp al, 0       ;continue if zero
+	int 21h               	;read key buffer
+	cmp al, 0               ;continue loop if zero
 	je keypress
 
 exit:
 	mov ah, 00h
 	mov al, 03h
-	int 10h         ;switch to text mode
+	int 10h            		;switch to text mode
 
 	mov ah, 4Ch
-	int 21h         ;exit to DOS
+	int 21h               	;exit to DOS
 
 end main
+
+;PROC something_proc
+;ENDP something_proc
+
+;MACRO something x,y
+	;push x
+	;call something_proc
+;ENDM
