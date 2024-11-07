@@ -1,6 +1,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Date: Nov 7, 2020
-; Author: Alex Simakov
+; Author: twelve-chairs
 ;
 ; A simple, and likely highly-inefficient,
 ; pixel plotter which fills in the screen
